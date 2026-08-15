@@ -156,7 +156,7 @@ input, textarea {
     filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.8));
 }
 
-/* --- News Channel Capsule Ticker Bar (Two ends curved like pill) --- */
+/* --- News Channel Capsule Ticker Bar (Fixed Stuck Issue) --- */
 .news-ticker-capsule {
     display: flex;
     align-items: center;
@@ -203,12 +203,14 @@ input, textarea {
     font-size: 13px;
     color: #e2e8f0;
     font-weight: 500;
+    pointer-events: none;
 }
 
 .capsule-marquee-text a {
     color: #00f2fe;
     text-decoration: none;
     font-weight: 600;
+    pointer-events: auto;
 }
 
 .capsule-marquee-text a:hover {
@@ -218,10 +220,6 @@ input, textarea {
 @keyframes newsTickerSlide {
     0% { transform: translate3d(0, 0, 0); }
     100% { transform: translate3d(-100%, 0, 0); }
-}
-
-.news-ticker-capsule:hover .capsule-marquee-text {
-    animation-play-state: paused;
 }
 
 /* Main Container */
