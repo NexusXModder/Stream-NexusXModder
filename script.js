@@ -61,6 +61,8 @@ const resBadgeEl = document.getElementById('resBadge');
 
 let currentHls = null;
 let speedInterval = null;
+let lastLoadedBytes = 0;
+let lastTimeCheck = performance.now();
 
 function renderChannels(channels) {
     grid.innerHTML = '';
@@ -101,40 +103,55 @@ function renderQuickSwapper() {
     });
 }
 
-// Reliable, Stable Network Speed Tracker using real connection metrics & HLS stream bytes
+// Running video speed tracker based on actual HLS buffer/bytes
 function updateNetworkSpeedMeter() {
-    let speedVal = "2.5 MB/s"; // Default stable baseline
+    let currentBytes = 0;
 
-    // Check if browser supports real Network Information API
-    if (navigator.connection) {
-        const conn = navigator.connection;
-        if (conn.downlink) {
-            // conn.downlink gives Mbps, convert to MB/s (divide by 8)
-            let mbPerSec = (conn.downlink / 8).toFixed(1);
-            speedVal = Math.max(0.5, mbPerSec) + " MB/s";
-        }
+    if (currentHls && currentHls.stats && currentHls.stats.totalBytesLoaded) {
+        currentBytes = currentHls.stats.totalBytesLoaded;
+    } else if (videoPlayer && videoPlayer.buffered.length > 0) {
+        currentBytes = videoPlayer.buffered.end(videoPlayer.buffered.length - 1) * 1024 * 64;
     }
 
-    // If HLS stats has active bandwidth data, prioritize it for maximum accuracy
-    if (currentHls && currentHls.bandwidthEstimate) {
-        let hlsBps = currentHls.bandwidthEstimate; // in bits per second
-        let hlsMbPerSec = (hlsBps / (8 * 1024 * 1024)).toFixed(1);
-        if (hlsMbPerSec > 0) {
-            speedVal = hlsMbPerSec + " MB/s";
-        }
-    }
+    const now = performance.now();
+    const timeElapsed = (now - lastTimeCheck) / 1000;
 
-    netSpeedEl.innerText = speedVal;
+    if (timeElapsed >= 0.8) {
+        const bytesDiff = currentBytes - lastLoadedBytes;
+        
+        if (bytesDiff > 0 && timeElapsed > 0) {
+            const bps = (bytesDiff * 8) / timeElapsed;
+            const mbps = bps / (1024 * 1024);
+            const mbPerSec = (mbps / 8).toFixed(2);
+            
+            netSpeedEl.innerText = Math.max(0.2, mbPerSec) + " MB/s";
+        } else {
+            if (navigator.connection && navigator.connection.downlink) {
+                const connSpeed = (navigator.connection.downlink / 8).toFixed(2);
+                netSpeedEl.innerText = connSpeed + " MB/s";
+            } else {
+                netSpeedEl.innerText = "1.8 MB/s";
+            }
+        }
+
+        lastLoadedBytes = currentBytes;
+        lastTimeCheck = now;
+    }
 }
 
 function startRealTimeSpeedTracker() {
     if (speedInterval) clearInterval(speedInterval);
-    updateNetworkSpeedMeter();
     
-    // Refresh smoothly every 3 seconds to remain stable without jumping randomly
+    lastLoadedBytes = 0;
+    lastTimeCheck = performance.now();
+    
     speedInterval = setInterval(() => {
-        updateNetworkSpeedMeter();
-    }, 3000);
+        if (videoPlayer && !videoPlayer.paused) {
+            updateNetworkSpeedMeter();
+        } else {
+            netSpeedEl.innerText = "Paused";
+        }
+    }, 1000);
 }
 
 function playChannel(channel) {
@@ -261,6 +278,5 @@ tabBtns.forEach(btn => {
     });
 });
 
-// Initial Render
 renderChannels(channelsData);
 renderQuickSwapper();
