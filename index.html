@@ -5,14 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus Stream ✦ World Class TV</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <!-- Header / Navbar -->
     <header class="header">
         <div class="logo-container">
             <i class="fa-solid fa-satellite-dish pulse-icon"></i>
@@ -27,10 +24,7 @@
         </div>
     </header>
 
-    <!-- Main Container -->
     <main class="main-container">
-        
-        <!-- Hero Banner Section -->
         <section class="hero-banner">
             <div class="hero-content">
                 <h2>◈ Ultimate Live Streaming Experience ◈</h2>
@@ -38,7 +32,6 @@
             </div>
         </section>
 
-        <!-- Category Filter Tabs -->
         <div class="filter-tabs">
             <button class="tab-btn active" data-filter="all">🌟 All Channels</button>
             <button class="tab-btn" data-filter="Sports">⚽ Sports Hub</button>
@@ -46,33 +39,56 @@
             <button class="tab-btn" data-filter="Premium">💎 Premium Feeds</button>
         </div>
 
-        <!-- Channels Grid -->
-        <div class="channels-grid" id="channelsGrid">
-            <!-- Dynamic Cards Will Load Here -->
-        </div>
+        <div class="channels-grid" id="channelsGrid"></div>
     </main>
 
-    <!-- Video Player Modal -->
+    <!-- World Class Video Player Modal -->
     <div class="modal" id="playerModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Now Playing</h3>
+                <div class="modal-title-wrap">
+                    <h3 id="modalTitle">Now Playing</h3>
+                    <span class="tier-badge">💎 WORLD-CLASS TIER</span>
+                </div>
                 <button class="close-btn" id="closeModal">&times;</button>
             </div>
+
             <div class="video-container">
                 <video id="videoPlayer" controls autoplay></video>
                 <div class="player-watermark">⚡ @NexusXModder</div>
+                
+                <!-- Live Telemetry Overlay -->
+                <div class="telemetry-bar">
+                    <span class="stat-pill"><i class="fa-solid fa-signal"></i> <span id="netSpeed">4.2 MB/s</span></span>
+                    <span class="stat-pill"><i class="fa-solid fa-display"></i> <span id="resBadge">1080p HD</span></span>
+                    <span class="stat-pill"><i class="fa-solid fa-gauge-high"></i> <span id="fpsBadge">60 FPS</span></span>
+                    <span class="stat-pill live-dot">● LIVE</span>
+                </div>
+            </div>
+
+            <!-- Channel Information Section -->
+            <div class="channel-info-panel">
+                <div class="info-details">
+                    <h4 id="infoChannelName">Channel Name</h4>
+                    <p id="infoChannelDesc">Loading high-definition metadata and stream health diagnostics from global servers...</p>
+                </div>
+            </div>
+
+            <!-- Quick Channel Swapper (Bottom Drawer) -->
+            <div class="quick-swapper">
+                <h5 class="swapper-title">⚡ Quick Channel Switcher</h5>
+                <div class="swapper-scroll" id="swapperScroll">
+                    <!-- Dynamic mini cards loaded via JS -->
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
     <footer>
         <p>Designed with 💎 Precision &bull; Powered by High-Speed APIs</p>
         <p class="footer-credit">Made by- @NexusXModder</p>
     </footer>
 
-    <!-- HLS.js for m3u8 stream support -->
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script src="script.js"></script>
 </body>
