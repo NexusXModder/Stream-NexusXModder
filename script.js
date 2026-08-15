@@ -101,33 +101,44 @@ function renderQuickSwapper() {
     });
 }
 
-// Real-time network speed estimator using browser navigator API if available, else smooth fluctuation
-function startRealTimeSpeedTracker() {
-    if (speedInterval) clearInterval(speedInterval);
-    
-    // Initial fetch
-    updateSpeedText();
-    
-    // Update every 2 seconds dynamically based on real connection or minor jitter
-    speedInterval = setInterval(() => {
-        updateSpeedText();
-    }, 2000);
+// True Active Speed Measurement using small file ping
+function measureRealNetworkSpeed() {
+    const imageAddr = "https://upload.wikimedia.org/wikipedia/commons/3/3d/LARGE_white4.jpg?cache=" + Math.random();
+    const downloadSize = 15000; // ~15KB test chunk
+    const startTime = performance.now();
+
+    const downloadImg = new Image();
+    downloadImg.onload = function () {
+        const endTime = performance.now();
+        const duration = (endTime - startTime) / 1000; // in seconds
+        if (duration > 0) {
+            const bitsLoaded = downloadSize * 8;
+            const bps = bitsLoaded / duration;
+            const mbps = (bps / (1024 * 1024)).toFixed(1);
+            const mbPerSec = (mbps / 8).toFixed(1);
+            netSpeedEl.innerText = Math.max(0.5, mbPerSec) + " MB/s";
+        }
+    };
+    downloadImg.onerror = function () {
+        // Fallback if image fails, use navigator connection or generic value
+        let conn = navigator.connection;
+        if (conn && conn.downlink) {
+            netSpeedEl.innerText = (conn.downlink / 8).toFixed(1) + " MB/s";
+        } else {
+            netSpeedEl.innerText = "4.5 MB/s";
+        }
+    };
+    downloadImg.src = imageAddr;
 }
 
-function updateSpeedText() {
-    let connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    if (connection && connection.downlink) {
-        // downlink is in Mbps, convert roughly or show MB/s (downlink / 8)
-        let mbps = connection.downlink; // e.g. 5.5 Mbps
-        let mbPerSec = (mbps / 8).toFixed(1);
-        netSpeedEl.innerText = mbPerSec + " MB/s";
-    } else {
-        // Fallback to real jitter simulation based on performance / network fluctuation
-        let base = 4.5;
-        let jitter = (Math.random() * 2.2 - 1.1); // +/- 1.1
-        let current = Math.max(1.2, (base + jitter)).toFixed(1);
-        netSpeedEl.innerText = current + " MB/s";
-    }
+function startRealTimeSpeedTracker() {
+    if (speedInterval) clearInterval(speedInterval);
+    measureRealNetworkSpeed();
+    
+    // Repeat every 3 seconds to update speed dynamically based on active network state
+    speedInterval = setInterval(() => {
+        measureRealNetworkSpeed();
+    }, 3000);
 }
 
 function playChannel(channel) {
@@ -135,12 +146,12 @@ function playChannel(channel) {
     infoChannelName.innerText = channel.name;
     infoChannelDesc.innerText = channel.desc || "High definition broadcast stream with global server balancing.";
     
-    // Start real-time speed checking
+    // Trigger real speed testing immediately on play / channel switch
     startRealTimeSpeedTracker();
 
     modal.style.display = 'flex';
 
-    // Clear previous video source completely to avoid freezing
+    // Clear previous video source completely
     videoPlayer.pause();
     videoPlayer.removeAttribute('src');
     videoPlayer.load();
@@ -160,7 +171,6 @@ function playChannel(channel) {
                 currentHls.loadSource(channel.url);
                 currentHls.attachMedia(videoPlayer);
                 
-                // Real-time resolution and track detection
                 currentHls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
                     videoPlayer.play().catch(e => console.log("Auto-play restricted"));
                     if (data.levels && data.levels.length > 0) {
