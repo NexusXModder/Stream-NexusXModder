@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Stream ✦ World Class TV</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- Header / Navbar -->
+    <header class="header">
+        <div class="logo-container">
+            <i class="fa-solid fa-satellite-dish pulse-icon"></i>
+            <h1>NEXUS <span class="gradient-text">STREAM</span></h1>
+        </div>
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Search channels across database...">
+        </div>
+        <div class="developer-tag">
+            <span>⚡ Made by- @NexusXModder</span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        
+        <!-- Hero Banner Section -->
+        <section class="hero-banner">
+            <div class="hero-content">
+                <h2>◈ Ultimate Live Streaming Experience ◈</h2>
+                <p>Access high-definition sports, global feeds, and entertainment channels instantly in one place.</p>
+            </div>
+        </section>
+
+        <!-- Category Filter Tabs -->
+        <div class="filter-tabs">
+            <button class="tab-btn active" data-filter="all">🌟 All Channels</button>
+            <button class="tab-btn" data-filter="Sports">⚽ Sports Hub</button>
+            <button class="tab-btn" data-filter="Bangla">🇧🇩 Bangla TV</button>
+            <button class="tab-btn" data-filter="Premium">💎 Premium Feeds</button>
+        </div>
+
+        <!-- Channels Grid -->
+        <div class="channels-grid" id="channelsGrid">
+            <!-- Dynamic Cards Will Load Here -->
+        </div>
+    </main>
+
+    <!-- Video Player Modal -->
+    <div class="modal" id="playerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Now Playing</h3>
+                <button class="close-btn" id="closeModal">&times;</button>
+            </div>
+            <div class="video-container">
+                <video id="videoPlayer" controls autoplay></video>
+                <div class="player-watermark">⚡ @NexusXModder</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>Designed with 💎 Precision &bull; Powered by High-Speed APIs</p>
+        <p class="footer-credit">Made by- @NexusXModder</p>
+    </footer>
+
+    <!-- HLS.js for m3u8 stream support -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="script.js"></script>
+</body>
+</html>
