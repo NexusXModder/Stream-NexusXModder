@@ -19,7 +19,7 @@ const channelsData = [
     { name: "Redbull TV", logo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ-I_gjgaJYlqDQGjAj96xh8S-5GZe_CZQK3w&usqp=CAU", url: "https://rbmn-live.akamaized.net/hls/live/590964/BoRB-AT/master_3360.m3u8", group: "Sports", desc: "Global entertainment and sports channel featuring breathtaking extreme sports, music festivals, and cultural events." },
     { name: "Alkass One (1080p)", logo: "https://i.imgur.com/10mmlha.png", url: "https://liveeu-gcp.alkassdigital.net/alkass1-p/main.m3u8", group: "Sports", desc: "Premium Middle-Eastern sports channel broadcasting premier football leagues, tournaments, and studio shows in full HD." },
     { name: "beIN SPORTS XTRA (1080p)", logo: "https://i.ibb.co/HT49GPmB/XTRA-2.png", url: "https://bein-xtra-bein.amagi.tv/playlist.m3u8", group: "Sports", desc: "Global sports network offering world-class soccer matches, tournament analysis, and international sports news." },
-    { name: "FIFA+ (720p)", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/FIFA%2B_(2025).svg/960px-FIFA%2B_(2025).svg.png", url: "https://a62dad94.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1_FJRkFQbHVzRW5nbGlzaF9ITFM/playlist.m3u8", group: "Sports", desc: "Official FIFA streaming home for archive matches, live youth tournaments, documentaries, and global football stories." },
+    { name: "FIFA+ (720p)", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/FIFA%2B_(2025).svg/960px-FIFA%2B_(2025).svg.png", url: "https://a62dad94.wurl.com/master/f36d25e7e52f1ba8d7e56eb859c636563214f541/UmFrdXRlblRWLWV1_FJRkFQbHVzRW5glGlzaF9ITFM/playlist.m3u8", group: "Sports", desc: "Official FIFA streaming home for archive matches, live youth tournaments, documentaries, and global football stories." },
 
     // --- Bangla Section ---
     { name: "TV9 Bangla", logo: "https://images.tv9bangla.com/wp-content/themes/tv9bangla/images/tv9-bangla-logo.svg", url: "https://dyjmyiv3bp2ez.cloudfront.net/pub-iotv9banaen8yq/liveabr/playlist.m3u8", group: "Bangla", desc: "Popular Bengali news and current affairs channel delivering fast-paced updates, investigative reports, and talk shows." },
@@ -105,38 +105,50 @@ function playChannel(channel) {
     infoChannelName.innerText = channel.name;
     infoChannelDesc.innerText = channel.desc || "High definition broadcast stream with global server balancing.";
     
-    // Dynamic simulated telemetry metrics
-    const randomSpeed = (Math.random() * (6.5 - 2.8) + 2.8).toFixed(1) + " MB/s";
+    // Dynamic Speed Update on every channel switch
+    const speeds = ["3.4 MB/s", "4.8 MB/s", "5.2 MB/s", "6.1 MB/s", "7.5 MB/s", "4.1 MB/s", "5.9 MB/s", "8.2 MB/s"];
+    const randomSpeed = speeds[Math.floor(Math.random() * speeds.length)];
     netSpeedEl.innerText = randomSpeed;
+    
     resBadgeEl.innerText = channel.name.includes("1080p") || channel.name.includes("FHD") ? "1080p FHD" : "720p HD";
 
     modal.style.display = 'flex';
 
+    // Clear previous video source completely to avoid freezing
+    videoPlayer.pause();
+    videoPlayer.removeAttribute('src');
+    videoPlayer.load();
+
     if (currentHls) {
+        currentHls.stopLoad();
+        currentHls.detachMedia();
         currentHls.destroy();
         currentHls = null;
     }
 
-    if (channel.url.endsWith('.m3u8')) {
-        if (Hls.isSupported()) {
-            currentHls = new Hls();
-            currentHls.loadSource(channel.url);
-            currentHls.attachMedia(videoPlayer);
-            currentHls.on(Hls.Events.MANIFEST_PARSED, () => {
-                videoPlayer.play();
-            });
-        } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+    // Load new stream safely
+    setTimeout(() => {
+        if (channel.url.endsWith('.m3u8')) {
+            if (Hls.isSupported()) {
+                currentHls = new Hls();
+                currentHls.loadSource(channel.url);
+                currentHls.attachMedia(videoPlayer);
+                currentHls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    videoPlayer.play().catch(e => console.log("Auto-play restricted"));
+                });
+            } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+                videoPlayer.src = channel.url;
+                videoPlayer.addEventListener('loadedmetadata', () => {
+                    videoPlayer.play();
+                });
+            }
+        } else {
             videoPlayer.src = channel.url;
-            videoPlayer.addEventListener('loadedmetadata', () => {
-                videoPlayer.play();
+            videoPlayer.play().catch(e => {
+                console.log("Direct stream play handled.");
             });
         }
-    } else {
-        videoPlayer.src = channel.url;
-        videoPlayer.play().catch(e => {
-            console.log("Direct stream play handled.");
-        });
-    }
+    }, 200);
 }
 
 closeModal.addEventListener('click', () => {
