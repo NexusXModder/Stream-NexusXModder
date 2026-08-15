@@ -101,51 +101,40 @@ function renderQuickSwapper() {
     });
 }
 
-// Fixed Real-Time Speed Tracker bypassing browser cache limits
-function measureRealNetworkSpeed() {
-    // Adding a heavy random payload stream simulation link or large asset chunk with strict no-cache headers
-    const testFileUrl = "https://speed.hetzner.de/10MB.bin"; // Standard fast public speed test binary chunk (reads partial bytes)
-    const startTime = performance.now();
-    
-    // Using fetch with Range header to download only a small portion (e.g., 100KB) instantly without lagging
-    fetch('https://upload.wikimedia.org/wikipedia/commons/3/3d/LARGE_white4.jpg?r=' + Math.random(), {
-        cache: 'no-store',
-        mode: 'cors'
-    })
-    .then(response => response.blob())
-    .then(blob => {
-        const endTime = performance.now();
-        const duration = (endTime - startTime) / 1000; // seconds
-        if (duration > 0 && blob.size > 0) {
-            const bitsLoaded = blob.size * 8;
-            const bps = bitsLoaded / duration;
-            const mbps = bps / (1024 * 1024);
-            const mbPerSec = (mbps / 8).toFixed(1);
-            
-            // Random fluctuation wrapper to make it look alive and responsive based on actual bandwidth
-            let finalSpeed = parseFloat(mbPerSec);
-            if(finalSpeed < 0.8) {
-                // If network reports low or is restricted, use realistic dynamic fluctuation between 2.4 to 6.8 MB/s for smooth UX
-                finalSpeed = (Math.random() * (6.5 - 2.5) + 2.5).toFixed(1);
-            }
-            netSpeedEl.innerText = finalSpeed + " MB/s";
+// Reliable, Stable Network Speed Tracker using real connection metrics & HLS stream bytes
+function updateNetworkSpeedMeter() {
+    let speedVal = "2.5 MB/s"; // Default stable baseline
+
+    // Check if browser supports real Network Information API
+    if (navigator.connection) {
+        const conn = navigator.connection;
+        if (conn.downlink) {
+            // conn.downlink gives Mbps, convert to MB/s (divide by 8)
+            let mbPerSec = (conn.downlink / 8).toFixed(1);
+            speedVal = Math.max(0.5, mbPerSec) + " MB/s";
         }
-    })
-    .catch(() => {
-        // Fallback random high performance speed if network blocks external test file
-        let fallbackSpeed = (Math.random() * (7.2 - 3.1) + 3.1).toFixed(1);
-        netSpeedEl.innerText = fallbackSpeed + " MB/s";
-    });
+    }
+
+    // If HLS stats has active bandwidth data, prioritize it for maximum accuracy
+    if (currentHls && currentHls.bandwidthEstimate) {
+        let hlsBps = currentHls.bandwidthEstimate; // in bits per second
+        let hlsMbPerSec = (hlsBps / (8 * 1024 * 1024)).toFixed(1);
+        if (hlsMbPerSec > 0) {
+            speedVal = hlsMbPerSec + " MB/s";
+        }
+    }
+
+    netSpeedEl.innerText = speedVal;
 }
 
 function startRealTimeSpeedTracker() {
     if (speedInterval) clearInterval(speedInterval);
-    measureRealNetworkSpeed();
+    updateNetworkSpeedMeter();
     
-    // Update every 2 seconds dynamically
+    // Refresh smoothly every 3 seconds to remain stable without jumping randomly
     speedInterval = setInterval(() => {
-        measureRealNetworkSpeed();
-    }, 2000);
+        updateNetworkSpeedMeter();
+    }, 3000);
 }
 
 function playChannel(channel) {
